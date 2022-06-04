@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gitlab.com/mlcprojects/wms/database"
@@ -77,12 +78,13 @@ func insertDefaults(ctx context.Context) {
 	if *f {
 		db := database.DB
 		var rolesList = []models.Role{
+			{Role: "dev", IsAdmin: true},
 			{Role: "admin", IsAdmin: true},
 			{Role: "manager", IsAdmin: true},
 			{Role: "supervisor", IsAdmin: true},
 			{Role: "leader", IsAdmin: true},
-			{Role: "operator", IsAdmin: false},
 			{Role: "publisher", IsAdmin: false},
+			{Role: "operator", IsAdmin: false},
 		}
 		if _, err := db.NewInsert().Model(&rolesList).Exec(ctx); err != nil {
 			return
@@ -100,6 +102,19 @@ func insertDefaults(ctx context.Context) {
 		if _, err := db.NewInsert().Model(&statusList).Exec(ctx); err != nil {
 			return
 		}
+		fmt.Println("Please enter password for 'dev' user:")
+		var pass string
+		if _, err := fmt.Scanln(&pass); err != nil {
+			panic(err.Error())
+		}
+		fmt.Printf("pass: %s, tipo: %T", pass, pass)
+		if err := models.CreateUser(ctx, &models.User{
+			Name:     "dev",
+			Password: pass,
+		}); err != nil {
+			panic(err.Error())
+		}
+
 	}
 	log.Print("default values created")
 }
@@ -113,7 +128,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     []string{"localhost"},
 		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))

@@ -10,6 +10,11 @@ import (
 )
 
 func CreateStatus(e echo.Context) (err error) {
+	if !(utils.VerifyRole(e, 2)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
 	s := new(models.Status)
 	if err = e.Bind(s); err != nil {
 		return e.JSON(http.StatusBadRequest, utils.Response{

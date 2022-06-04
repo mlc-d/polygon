@@ -9,6 +9,11 @@ import (
 )
 
 func CreateLote(e echo.Context) (err error) {
+	if !(utils.VerifyRole(e, 3)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
 	l := new(models.Lote)
 	if err = e.Bind(l); err != nil {
 		return e.JSON(http.StatusBadRequest, utils.Response{

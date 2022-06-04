@@ -3,7 +3,9 @@ package utils
 import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
+	"github.com/labstack/echo/v4"
 	"regexp"
+	"strconv"
 )
 
 type Response map[string]any
@@ -20,10 +22,11 @@ var (
 	//invalidData
 	//dbError
 	Msg = map[string]string{
-		"jsonError":   "El servidor no reconoce la información enviada",
-		"invalidData": "La información enviada tiene inconsistencias",
-		"dbError":     "La petición a la base de datos no tuvo éxito",
-		"jwtError":    "Error al validar o generar un JWT",
+		"jsonError":    "El servidor no reconoce la información enviada",
+		"invalidData":  "La información enviada tiene inconsistencias",
+		"dbError":      "La petición a la base de datos no tuvo éxito",
+		"jwtError":     "Error al validar o generar un JWT",
+		"unauthorized": "Su usuario no está autorizado para realizar la operación",
 	}
 )
 
@@ -44,4 +47,12 @@ func ByteValue(i interface{}) []byte {
 
 func ThrowErrorString(i interface{}) error {
 	return fmt.Errorf("error: %v", i)
+}
+
+func VerifyRole(e echo.Context, downTo int) bool {
+	rol := e.Get("rolFromReq")
+	if val, err := strconv.Atoi(StringValue(rol)); err != nil || val >= downTo {
+		return false
+	}
+	return true
 }

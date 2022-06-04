@@ -11,9 +11,15 @@ import (
 
 func CreateUser(e echo.Context) (err error) {
 	u := new(models.User)
+
 	if err = e.Bind(u); err != nil {
 		return e.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
+		})
+	}
+	if !(utils.VerifyRole(e, 3)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
 		})
 	}
 	f, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)

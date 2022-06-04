@@ -9,6 +9,11 @@ import (
 )
 
 func CreateProduct(e echo.Context) (err error) {
+	if !(utils.VerifyRole(e, 4)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
 	p := new(models.Product)
 	if err = e.Bind(p); err != nil {
 		return e.JSON(http.StatusBadRequest, "invalid entry, please check your request")

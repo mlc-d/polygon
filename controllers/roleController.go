@@ -9,6 +9,11 @@ import (
 )
 
 func CreateRole(e echo.Context) (err error) {
+	if !(utils.VerifyRole(e, 2)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
 	r := new(models.Role)
 	if err = e.Bind(r); err != nil {
 		return e.JSON(http.StatusBadRequest, utils.Response{

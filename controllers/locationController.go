@@ -9,6 +9,11 @@ import (
 )
 
 func CreateLocation(e echo.Context) (err error) {
+	if !(utils.VerifyRole(e, 4)) {
+		return e.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
 	l := new(models.Location)
 	if err = e.Bind(l); err != nil {
 		return e.JSON(http.StatusBadRequest, utils.Response{

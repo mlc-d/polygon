@@ -74,6 +74,8 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 	if !accToken.Valid {
 		return nil, c.String(http.StatusInternalServerError, "")
 	}
+	claims, _ := accToken.Claims.(jwt.MapClaims)
+	c.Set("rolFromReq", claims["rol"])
 	return nil, nil
 }
 
