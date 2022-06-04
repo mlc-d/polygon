@@ -8,15 +8,15 @@ import (
 	"net/http"
 )
 
-func CreateRole(e echo.Context) (err error) {
-	if !(utils.VerifyRole(e, 2)) {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+func CreateRole(c echo.Context) (err error) {
+	if !(utils.VerifyRole(c, 2)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	r := new(models.Role)
-	if err = e.Bind(r); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(r); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -25,16 +25,16 @@ func CreateRole(e echo.Context) (err error) {
 		IsAdmin: r.IsAdmin,
 	}
 	if err = models.CreateRole(database.Ctx, &role); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetRoles(e echo.Context) (err error) {
+func GetRoles(c echo.Context) (err error) {
 	roles := models.GetRoles(database.Ctx)
-	return e.JSON(http.StatusOK, roles)
+	return c.JSON(http.StatusOK, roles)
 }

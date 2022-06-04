@@ -8,40 +8,42 @@ import (
 	"net/http"
 )
 
-func CreateProduct(e echo.Context) (err error) {
-	if !(utils.VerifyRole(e, 4)) {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+func CreateProduct(c echo.Context) (err error) {
+	if !(utils.VerifyRole(c, 4)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	p := new(models.Product)
-	if err = e.Bind(p); err != nil {
-		return e.JSON(http.StatusBadRequest, "invalid entry, please check your request")
-	}
-	wrongName, err := utils.ValidateInput(`[^\p{L}\d.¡!#]`, p.Name)
-	wrongRef, err1 := utils.ValidateInput(`[^\p{L}\d.:-_]`, p.Ref)
-	wrongDescription, err2 := utils.ValidateInput(`[^\p{L}\d.,:;¡!#]`, p.Description)
-	if wrongName || wrongRef || wrongDescription || err != nil || err1 != nil || err2 != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["invalidData"],
+	if err = c.Bind(p); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["jsonError"],
 		})
 	}
+	/*wrongName, err := utils.ValidateInput(`[^\p{L}\d.¡!# ]`, p.Name)
+	wrongRef, err1 := utils.ValidateInput(`[^\p{L}\d.:-_]`, p.Ref)
+	wrongDescription, err2 := utils.ValidateInput(`[^\p{L}\d.,:;¡!# ]`, p.Description)
+	if wrongName || wrongRef || wrongDescription || err != nil || err1 != nil || err2 != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["invalidData"],
+		})
+	}*/
 	product := models.Product{
 		Name:        p.Name,
 		Ref:         p.Ref,
 		Description: p.Description,
 	}
 	if err = models.CreateProduct(database.Ctx, &product); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": "dbError",
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetProducts(e echo.Context) (err error) {
+func GetProducts(c echo.Context) (err error) {
 	products := models.GetProducts(database.Ctx)
-	return e.JSON(http.StatusOK, products)
+	return c.JSON(http.StatusOK, products)
 }

@@ -8,15 +8,15 @@ import (
 	"net/http"
 )
 
-func CreateLocation(e echo.Context) (err error) {
-	if !(utils.VerifyRole(e, 4)) {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+func CreateLocation(c echo.Context) (err error) {
+	if !(utils.VerifyRole(c, 4)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Location)
-	if err = e.Bind(l); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(l); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -24,16 +24,16 @@ func CreateLocation(e echo.Context) (err error) {
 		Location: l.Location,
 	}
 	if err = models.CreateLocation(database.Ctx, &location); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetLocations(e echo.Context) (err error) {
+func GetLocations(c echo.Context) (err error) {
 	locations := models.GetLocations(database.Ctx)
-	return e.JSON(http.StatusOK, locations)
+	return c.JSON(http.StatusOK, locations)
 }

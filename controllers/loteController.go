@@ -8,21 +8,21 @@ import (
 	"net/http"
 )
 
-func CreateLote(e echo.Context) (err error) {
-	if !(utils.VerifyRole(e, 3)) {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+func CreateLote(c echo.Context) (err error) {
+	if !(utils.VerifyRole(c, 3)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Lote)
-	if err = e.Bind(l); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(l); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
 	f, err := utils.ValidateInput(`[^\p{L}\d]`, l.Lote)
 	if f || len(l.Lote) > 4 || err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["invalidData"],
 		})
 	}
@@ -30,16 +30,16 @@ func CreateLote(e echo.Context) (err error) {
 		Lote: l.Lote,
 	}
 	if err = models.CreateLote(database.Ctx, &lote); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetLotes(e echo.Context) (err error) {
+func GetLotes(c echo.Context) (err error) {
 	locations := models.GetLotes(database.Ctx)
-	return e.JSON(http.StatusOK, locations)
+	return c.JSON(http.StatusOK, locations)
 }

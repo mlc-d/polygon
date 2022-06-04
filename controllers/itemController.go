@@ -8,14 +8,15 @@ import (
 	"net/http"
 )
 
-func CreateItem(e echo.Context) (err error) {
+func CreateItem(c echo.Context) (err error) {
 	i := new(models.Item)
-	if err = e.Bind(i); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(i); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
 	item := models.Item{
+		Id:         i.Id,
 		UIC:        i.UIC,
 		SkuID:      i.SkuID,
 		LocationID: i.LocationID,
@@ -23,16 +24,35 @@ func CreateItem(e echo.Context) (err error) {
 		UserID:     i.UserID,
 	}
 	if err = models.CreateItem(database.Ctx, &item); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetItems(e echo.Context) (err error) {
+func GetItems(c echo.Context) (err error) {
 	locations := models.GetItems(database.Ctx)
-	return e.JSON(http.StatusOK, locations)
+	return c.JSON(http.StatusOK, locations)
+}
+
+func UpdateItem(c echo.Context) (err error) {
+	i := new(models.Item)
+	if err = c.Bind(i); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["jsonError"],
+		})
+	}
+	// validate request
+	if err = models.UpdateItem(database.Ctx, i); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["dbError"],
+		})
+	}
+	//fmt.Println("ECHO LA CONCHA TUYA")
+	return c.JSON(http.StatusOK, utils.Response{
+		"success": "actualizado",
+	})
 }

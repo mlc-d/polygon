@@ -16,31 +16,31 @@ var (
 	config = conf.Cf
 )
 
-func Login(e echo.Context) (err error) {
+func Login(c echo.Context) (err error) {
 	user := new(models.User)
-	if err = e.Bind(&user); err != nil {
-		return e.JSON(http.StatusInternalServerError, utils.Response{
+	if err = c.Bind(&user); err != nil {
+		return c.JSON(http.StatusInternalServerError, utils.Response{
 			"error": "El servidor no reconoce la información enviada",
 		})
 	}
 	if user.RoleID, err = models.ValidateUser(database.Ctx, user); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": "Credenciales inválidas",
 		})
 	}
 	token, err := createAccessToken(user.Name, utils.StringValue(user.RoleID))
 	if err != nil {
-		return e.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Response{
 			"error": "Problema al crear un token de acceso",
 		})
 	}
-	err = createRefreshToken(e, *user)
+	err = createRefreshToken(c, *user)
 	if err != nil {
-		return e.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Response{
 			"error": "Problema al crear token",
 		})
 	}
-	return e.JSON(http.StatusOK, utils.Response{
+	return c.JSON(http.StatusOK, utils.Response{
 		"accToken": token,
 	})
 }
@@ -81,7 +81,7 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 
 // Refresh Token
 
-func createRefreshToken(e echo.Context, u models.User) (err error) {
+func createRefreshToken(c echo.Context, u models.User) (err error) {
 	expireDate := time.Now().Add(time.Hour * 24 * 7)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, &utils.CustomJWTClaims{
 		utils.StringValue(u.RoleID),
@@ -99,7 +99,7 @@ func createRefreshToken(e echo.Context, u models.User) (err error) {
 	cookie.Value = refreshToken
 	cookie.Expires = expireDate
 	cookie.HttpOnly = true
-	e.SetCookie(cookie)
+	c.SetCookie(cookie)
 	return nil
 }
 

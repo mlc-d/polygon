@@ -9,15 +9,15 @@ import (
 	"net/http"
 )
 
-func CreateStatus(e echo.Context) (err error) {
-	if !(utils.VerifyRole(e, 2)) {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+func CreateStatus(c echo.Context) (err error) {
+	if !(utils.VerifyRole(c, 2)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	s := new(models.Status)
-	if err = e.Bind(s); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(s); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -30,16 +30,16 @@ func CreateStatus(e echo.Context) (err error) {
 		Status: s.Status,
 	}
 	if err = models.CreateStatus(database.Ctx, &status); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetStatuses(e echo.Context) (err error) {
+func GetStatuses(c echo.Context) (err error) {
 	statuses := models.GetStatuses(database.Ctx)
-	return e.JSON(http.StatusOK, statuses)
+	return c.JSON(http.StatusOK, statuses)
 }

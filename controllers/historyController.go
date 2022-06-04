@@ -8,10 +8,10 @@ import (
 	"net/http"
 )
 
-func CreateHistory(e echo.Context) (err error) {
+func CreateHistory(c echo.Context) (err error) {
 	h := new(models.History)
-	if err = e.Bind(h); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+	if err = c.Bind(h); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -23,16 +23,37 @@ func CreateHistory(e echo.Context) (err error) {
 		UserID:     h.UserID,
 	}
 	if err = models.CreateHistory(database.Ctx, &history); err != nil {
-		return e.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return e.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
 }
 
-func GetHistories(e echo.Context) (err error) {
+func GetHistories(c echo.Context) (err error) {
 	histories := models.GetHistories(database.Ctx)
-	return e.JSON(http.StatusOK, histories)
+	return c.JSON(http.StatusOK, histories)
 }
+
+/*func UpdateHistory(i models.Item) (err error) {
+	h := models.History{
+		ItemID:     i.Id,
+		SkuID:      i.SkuID,
+		LocationID: i.LocationID,
+		StatusID:   i.StatusID,
+		UserID:     i.UserID,
+	}
+	// validate request
+	if err = models.CreateHistory(database.Ctx, &h); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["dbError"],
+		})
+	}
+	//fmt.Println("ECHO LA CONCHA TUYA")
+	return c.JSON(http.StatusOK, utils.Response{
+		"success": "actualizado",
+	})
+}
+*/

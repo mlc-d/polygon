@@ -27,6 +27,7 @@ func SetUpRoutes(e *echo.Echo) {
 	// items
 	apiGroup.GET("/items", controllers.GetItems)
 	apiGroup.POST("/items", controllers.CreateItem)
+	apiGroup.PATCH("/items", controllers.UpdateItem)
 	// skus
 	apiGroup.GET("/skus", controllers.GetSkus)
 	apiGroup.POST("/skus", controllers.CreateSku)
