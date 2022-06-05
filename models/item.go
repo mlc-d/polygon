@@ -27,8 +27,8 @@ func CreateItem(ctx context.Context, i *Item) (err error) {
 	_, err = db.NewInsert().
 		Model(i).
 		Exec(ctx)
-	if err != nil {
-		CreateHistory(ctx, &History{
+	if err == nil {
+		_ = CreateHistory(ctx, &History{
 			ItemID:     i.Id,
 			SkuID:      i.SkuID,
 			LocationID: i.LocationID,
@@ -64,5 +64,14 @@ func UpdateItem(ctx context.Context, i *Item) (err error) {
 		Where("id = ?", i.Id).
 		Returning("NULL").
 		Exec(ctx)
+	if err == nil {
+		_ = CreateHistory(ctx, &History{
+			ItemID:     i.Id,
+			SkuID:      i.SkuID,
+			LocationID: i.LocationID,
+			StatusID:   i.StatusID,
+			UserID:     i.UserID,
+		})
+	}
 	return
 }

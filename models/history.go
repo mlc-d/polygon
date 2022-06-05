@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"gitlab.com/mlcprojects/wms/database"
 	"time"
 )
@@ -22,6 +23,8 @@ type History struct {
 }
 
 func CreateHistory(ctx context.Context, h *History) (err error) {
+	fmt.Println("llegué a histories")
+	fmt.Println(h)
 	db := database.DB
 	_, err = db.NewInsert().
 		Model(h).
