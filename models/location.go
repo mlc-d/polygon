@@ -9,6 +9,7 @@ import (
 type Location struct {
 	Id        uint      `bun:",pk,autoincrement" json:"id"`
 	Location  string    `bun:",notnull,unique" json:"location"`
+	StatusID  string    `bun:",nullzero,notnull,default:2,type:bigint" json:"status"`
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
 	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
 	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`

@@ -9,6 +9,11 @@ var (
 	Cf Config
 )
 
+type ApiConfig struct {
+	Endpoint string `mapstructure:"endpoint"`
+	Version  string `mapstructure:"version"`
+}
+
 type DbConfig struct {
 	Dsn string `mapstructure:"dsn"`
 }
@@ -19,6 +24,7 @@ type JwtConfig struct {
 }
 
 type Config struct {
+	Api ApiConfig `mapstructure:"api"`
 	Db  DbConfig  `mapstructure:"db"`
 	Jwt JwtConfig `mapstructure:"jwt"`
 }

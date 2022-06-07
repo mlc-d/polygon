@@ -9,20 +9,20 @@ import (
 )
 
 func CreateLote(c echo.Context) (err error) {
-	if !(utils.VerifyRole(c, 3)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+	if !(utils.VerifyRole(c, 4)) {
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Lote)
 	if err = c.Bind(l); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
 	f, err := utils.ValidateInput(`[^\p{L}\d]`, l.Lote)
 	if f || len(l.Lote) > 4 || err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["invalidData"],
 		})
 	}
@@ -30,11 +30,11 @@ func CreateLote(c echo.Context) (err error) {
 		Lote: l.Lote,
 	}
 	if err = models.CreateLote(database.Ctx, &lote); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

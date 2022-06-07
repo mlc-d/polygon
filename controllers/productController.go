@@ -10,13 +10,13 @@ import (
 
 func CreateProduct(c echo.Context) (err error) {
 	if !(utils.VerifyRole(c, 4)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	p := new(models.Product)
 	if err = c.Bind(p); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -24,7 +24,7 @@ func CreateProduct(c echo.Context) (err error) {
 	wrongRef, err1 := utils.ValidateInput(`[^\p{L}\d.:-_]`, p.Ref)
 	wrongDescription, err2 := utils.ValidateInput(`[^\p{L}\d.,:;¡!# ]`, p.Description)
 	if wrongName || wrongRef || wrongDescription || err != nil || err1 != nil || err2 != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["invalidData"],
 		})
 	}*/
@@ -34,11 +34,11 @@ func CreateProduct(c echo.Context) (err error) {
 		Description: p.Description,
 	}
 	if err = models.CreateProduct(database.Ctx, &product); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": "dbError",
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

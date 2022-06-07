@@ -10,19 +10,19 @@ import (
 
 func CreateSku(c echo.Context) (err error) {
 	if !(utils.VerifyRole(c, 4)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	s := new(models.Sku)
 	if err = c.Bind(s); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
 	/*f, err := utils.ValidateInput(`[^\p{L}\d-]`, s.Sku)
 	if f || err != nil || len(s.Sku) > 10 {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["invalidData"],
 		})
 	}*/
@@ -31,11 +31,11 @@ func CreateSku(c echo.Context) (err error) {
 		ProductID: s.ProductID,
 	}
 	if err = models.CreateSku(database.Ctx, &sku); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

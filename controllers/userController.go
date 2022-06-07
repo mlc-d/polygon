@@ -13,18 +13,18 @@ func CreateUser(c echo.Context) (err error) {
 	u := new(models.User)
 
 	if err = c.Bind(u); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
-	if !(utils.VerifyRole(c, 3)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+	if !(utils.VerifyRole(c, 4)) {
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	f, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
 	if f || err != nil || len(u.Name) > 30 || len(u.Password) < 4 {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["invalidData"],
 		})
 	}
@@ -34,11 +34,11 @@ func CreateUser(c echo.Context) (err error) {
 		RoleID:   u.RoleID,
 	}
 	if err = models.CreateUser(database.Ctx, &user); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }
@@ -47,13 +47,13 @@ func GetUser(c echo.Context) (err error) {
 	st := c.Param("id")
 	var id int
 	if id, err = strconv.Atoi(st); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["invalidData"],
 		})
 	}
 	var user models.User
 	if user, err = models.GetUser(database.Ctx, &models.User{Id: uint(id)}); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}

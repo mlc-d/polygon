@@ -11,13 +11,13 @@ import (
 
 func CreateStatus(c echo.Context) (err error) {
 	if !(utils.VerifyRole(c, 2)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	s := new(models.Status)
 	if err = c.Bind(s); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -30,11 +30,11 @@ func CreateStatus(c echo.Context) (err error) {
 		Status: s.Status,
 	}
 	if err = models.CreateStatus(database.Ctx, &status); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

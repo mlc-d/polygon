@@ -19,28 +19,28 @@ var (
 func Login(c echo.Context) (err error) {
 	user := new(models.User)
 	if err = c.Bind(&user); err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": "El servidor no reconoce la información enviada",
 		})
 	}
 	if user.RoleID, err = models.ValidateUser(database.Ctx, user); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": "Credenciales inválidas",
 		})
 	}
-	token, err := createAccessToken(user.Name, utils.StringValue(user.RoleID))
+	token, err := createAccessToken(user.Name, utils.Stringify(user.RoleID))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": "Problema al crear un token de acceso",
 		})
 	}
 	err = createRefreshToken(c, *user)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": "Problema al crear token",
 		})
 	}
-	return c.JSON(http.StatusOK, utils.Response{
+	return c.JSON(http.StatusOK, utils.Res{
 		"accToken": token,
 	})
 }
@@ -84,7 +84,7 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 func createRefreshToken(c echo.Context, u models.User) (err error) {
 	expireDate := time.Now().Add(time.Hour * 24 * 7)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, &utils.CustomJWTClaims{
-		utils.StringValue(u.RoleID),
+		utils.Stringify(u.RoleID),
 		jwt.StandardClaims{
 			Subject:   u.Name,
 			ExpiresAt: expireDate.Unix(),
@@ -106,7 +106,7 @@ func createRefreshToken(c echo.Context, u models.User) (err error) {
 func Refresh(c echo.Context) (err error) {
 	requestCookie, err := c.Request().Cookie("refreshToken")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"content": err.Error(),
 		})
 	}
@@ -119,25 +119,25 @@ func Refresh(c echo.Context) (err error) {
 		return []byte(config.Jwt.RefSecKey), nil
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": utils.Msg["jwtError"],
 		})
 	}
 	if !refToken.Valid {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": utils.Msg["jwtError"],
 		})
 	}
 	claims := refToken.Claims.(jwt.MapClaims)
-	subject := utils.StringValue(claims["sub"])
-	rolID := utils.StringValue(claims["rol"])
+	subject := utils.Stringify(claims["sub"])
+	rolID := utils.Stringify(claims["rol"])
 	newAccToken, err := createAccessToken(subject, rolID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
+		return c.JSON(http.StatusInternalServerError, utils.Res{
 			"error": utils.Msg["jwtError"],
 		})
 	}
-	return c.JSON(http.StatusOK, utils.Response{
+	return c.JSON(http.StatusOK, utils.Res{
 		"accToken": newAccToken,
 	})
 }

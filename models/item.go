@@ -9,14 +9,10 @@ import (
 type Item struct {
 	Id         uint      `bun:",pk,autoincrement" json:"id"`
 	UIC        string    `bun:",notnull,unique,type:varchar(6)" json:"uic"`
-	SkuID      uint      `json:"sku_id"`
-	Sku        *Sku      `bun:"rel:belongs-to,join:sku_id=id"`
-	LocationID uint      `json:"location_id"`
-	Location   *Location `bun:"rel:belongs-to,join:location_id=id"`
-	StatusID   uint      `json:"status_id"`
-	Status     *Status   `bun:"rel:belongs-to,join:status_id=id"`
-	UserID     uint      `json:"user_id"`
-	User       *Location `bun:"rel:belongs-to,join:user_id=id"`
+	SkuID      uint      `json:"sku"`
+	LocationID uint      `json:"location"`
+	StatusID   uint      `json:"status"`
+	UserID     uint      `json:"user"`
 	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
 	UpdatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
 	DeletedAt  time.Time `bun:",soft_delete,nullzero,type:timestamptz" json:"deleted_at"`
@@ -71,6 +67,25 @@ func UpdateItem(ctx context.Context, i *Item) (err error) {
 			LocationID: i.LocationID,
 			StatusID:   i.StatusID,
 			UserID:     i.UserID,
+		})
+	}
+	return
+}
+
+func AllocateItem(ctx context.Context, i *Item) (err error) {
+	updatedAt := time.Now()
+	db := database.DB
+	_, err = db.NewUpdate().
+		Model(&Item{}).
+		Column("location_id", "updated_at").
+		Set("location_id = ?", i.LocationID).
+		Set("updated_at = ?", updatedAt).
+		Where("id = ?", i.Id).
+		Exec(ctx)
+	if err == nil {
+		_ = CreateHistory(ctx, &History{
+			ItemID:     i.Id,
+			LocationID: i.LocationID,
 		})
 	}
 	return

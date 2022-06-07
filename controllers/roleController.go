@@ -10,26 +10,25 @@ import (
 
 func CreateRole(c echo.Context) (err error) {
 	if !(utils.VerifyRole(c, 2)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	r := new(models.Role)
 	if err = c.Bind(r); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
 	role := models.Role{
-		Role:    r.Role,
-		IsAdmin: r.IsAdmin,
+		Role: r.Role,
 	}
 	if err = models.CreateRole(database.Ctx, &role); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

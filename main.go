@@ -78,13 +78,12 @@ func insertDefaults(ctx context.Context) {
 	if *f {
 		db := database.DB
 		var rolesList = []models.Role{
-			{Role: "dev", IsAdmin: true},
-			{Role: "admin", IsAdmin: true},
-			{Role: "manager", IsAdmin: true},
-			{Role: "supervisor", IsAdmin: true},
-			{Role: "leader", IsAdmin: true},
-			{Role: "publisher", IsAdmin: false},
-			{Role: "operator", IsAdmin: false},
+			{Role: "dev"},
+			{Role: "admin"},
+			{Role: "manager"},
+			{Role: "supervisor"},
+			{Role: "leader"},
+			{Role: "operator"},
 		}
 		if _, err := db.NewInsert().Model(&rolesList).Exec(ctx); err != nil {
 			return
@@ -128,7 +127,7 @@ func main() {
 	e := echo.New()
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"localhost"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{http.MethodGet, http.MethodHead, http.MethodPut, http.MethodPatch, http.MethodPost, http.MethodDelete},
 		AllowCredentials: true,
 	}))

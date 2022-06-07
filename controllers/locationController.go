@@ -9,14 +9,14 @@ import (
 )
 
 func CreateLocation(c echo.Context) (err error) {
-	if !(utils.VerifyRole(c, 4)) {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+	if !(utils.VerifyRole(c, 5)) {
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Location)
 	if err = c.Bind(l); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -24,11 +24,11 @@ func CreateLocation(c echo.Context) (err error) {
 		Location: l.Location,
 	}
 	if err = models.CreateLocation(database.Ctx, &location); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }

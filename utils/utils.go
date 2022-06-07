@@ -8,7 +8,8 @@ import (
 	"strconv"
 )
 
-type Response map[string]any
+// Res type to return a map
+type Res map[string]interface{}
 
 type CustomJWTClaims struct {
 	Rid string `json:"rol"`
@@ -36,11 +37,12 @@ func ValidateInput(pattern string, input string) (bool, error) {
 	return regexp.Match(pattern, []byte(input))
 }
 
-// StringValue Simple wrapper for fmt.Sprintf(),
-func StringValue(i interface{}) string {
+// Stringify Simple wrapper for fmt.Sprintf(),
+func Stringify(i interface{}) string {
 	return fmt.Sprintf("%v", i)
 }
 
+// ByteValue Simple wrapper for []byte()
 func ByteValue(i interface{}) []byte {
 	return []byte(fmt.Sprintf("%v", i))
 }
@@ -49,9 +51,10 @@ func ThrowErrorString(i interface{}) error {
 	return fmt.Errorf("error: %v", i)
 }
 
+// VerifyRole reads the role from the context and compares it to downTo
 func VerifyRole(e echo.Context, downTo int) bool {
 	rol := e.Get("rolFromReq")
-	if val, err := strconv.Atoi(StringValue(rol)); err != nil || val >= downTo {
+	if val, err := strconv.Atoi(Stringify(rol)); err != nil || val >= downTo {
 		return false
 	}
 	return true

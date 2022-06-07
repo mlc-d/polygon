@@ -11,7 +11,7 @@ import (
 func CreateHistory(c echo.Context) (err error) {
 	h := new(models.History)
 	if err = c.Bind(h); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["jsonError"],
 		})
 	}
@@ -23,11 +23,11 @@ func CreateHistory(c echo.Context) (err error) {
 		UserID:     h.UserID,
 	}
 	if err = models.CreateHistory(database.Ctx, &history); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
+	return c.JSON(http.StatusCreated, utils.Res{
 		"success": "creado",
 	})
 }
@@ -47,12 +47,12 @@ func GetHistories(c echo.Context) (err error) {
 	}
 	// validate request
 	if err = models.CreateHistory(database.Ctx, &h); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
+		return c.JSON(http.StatusBadRequest, utils.Res{
 			"error": utils.Msg["dbError"],
 		})
 	}
 	//fmt.Println("ECHO LA CONCHA TUYA")
-	return c.JSON(http.StatusOK, utils.Response{
+	return c.JSON(http.StatusOK, utils.Res{
 		"success": "actualizado",
 	})
 }

@@ -1,15 +1,18 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	conf "gitlab.com/mlcprojects/wms/config"
 	"gitlab.com/mlcprojects/wms/controllers"
 )
 
-const version = "/api/v1"
-
-var cf = conf.Cf
+var (
+	cf       = conf.Cf
+	endpoint = cf.Api.Endpoint
+	version  = cf.Api.Version
+)
 
 func SetUpRoutes(e *echo.Echo) {
 
@@ -17,8 +20,8 @@ func SetUpRoutes(e *echo.Echo) {
 		TokenLookup:    "header:accessToken",
 		ParseTokenFunc: controllers.ValidateAccessToken,
 	}
-
-	apiGroup := e.Group(version)
+	fmt.Println(endpoint + version)
+	apiGroup := e.Group(endpoint + version)
 	apiGroup.Use(middleware.JWTWithConfig(config))
 
 	// histories
@@ -50,6 +53,10 @@ func SetUpRoutes(e *echo.Echo) {
 	// lotes
 	apiGroup.GET("/lotes", controllers.GetLotes)
 	apiGroup.POST("/lotes", controllers.CreateLote)
+
+	// test
+	// apiGroup.POST("/testing", controllers.SampleHandler)
+
 	//login
 	e.POST("/login", controllers.Login)
 	//refresh
