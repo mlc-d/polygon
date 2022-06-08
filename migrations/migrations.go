@@ -11,57 +11,84 @@ import (
 
 func MigrateModels(ctx context.Context) {
 	db := database.DB
-	if _, err := db.NewCreateTable().
-		Model(&models.History{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
-	if _, err := db.NewCreateTable().
-		Model(&models.Item{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
-	if _, err := db.NewCreateTable().
-		Model(&models.Location{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
-	if _, err := db.NewCreateTable().
-		Model(&models.Lote{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
-	if _, err := db.NewCreateTable().
-		Model(&models.Product{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
+	// create 'roles'
 	if _, err := db.NewCreateTable().
 		Model(&models.Role{}).
 		IfNotExists().
 		Exec(ctx); err != nil {
 		panic(err.Error())
 	}
-	if _, err := db.NewCreateTable().
-		Model(&models.Sku{}).
-		IfNotExists().
-		Exec(ctx); err != nil {
-		panic(err.Error())
-	}
+	// create 'statuses'
 	if _, err := db.NewCreateTable().
 		Model(&models.Status{}).
 		IfNotExists().
 		Exec(ctx); err != nil {
 		panic(err.Error())
 	}
+	// create 'lotes'
+	if _, err := db.NewCreateTable().
+		Model(&models.Lote{}).
+		IfNotExists().
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// create 'products'
+	if _, err := db.NewCreateTable().
+		Model(&models.Product{}).
+		IfNotExists().
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// create 'skus'
+	if _, err := db.NewCreateTable().
+		Model(&models.Sku{}).
+		IfNotExists().
+		WithForeignKeys().
+		ForeignKey("(product_id) REFERENCES products (id) ON DELETE RESTRICT").
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// 'locations'
+	if _, err := db.NewCreateTable().
+		Model(&models.Location{}).
+		IfNotExists().
+		WithForeignKeys().
+		ForeignKey("(status_id) REFERENCES statuses (id) ON DELETE RESTRICT").
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// 'users'
 	if _, err := db.NewCreateTable().
 		Model(&models.User{}).
 		IfNotExists().
+		WithForeignKeys().
+		ForeignKey("(role_id) REFERENCES roles (id) ON DELETE RESTRICT").
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// 'items'
+	if _, err := db.NewCreateTable().
+		Model(&models.Item{}).
+		IfNotExists().
+		WithForeignKeys().
+		ForeignKey("(sku_id) REFERENCES skus (id) ON DELETE RESTRICT").
+		ForeignKey("(lote_id) REFERENCES lotes (id) ON DELETE RESTRICT").
+		ForeignKey("(location_id) REFERENCES locations (id) ON DELETE RESTRICT").
+		ForeignKey("(status_id) REFERENCES statuses (id) ON DELETE RESTRICT").
+		ForeignKey("(user_id) REFERENCES users (id) ON DELETE RESTRICT").
+		Exec(ctx); err != nil {
+		panic(err.Error())
+	}
+	// 'histories'
+	if _, err := db.NewCreateTable().
+		Model(&models.History{}).
+		IfNotExists().
+		WithForeignKeys().
+		ForeignKey("(item_id) REFERENCES items (id) ON DELETE RESTRICT").
+		ForeignKey("(sku_id) REFERENCES skus (id) ON DELETE RESTRICT").
+		ForeignKey("(location_id) REFERENCES locations (id) ON DELETE RESTRICT").
+		ForeignKey("(status_id) REFERENCES statuses (id) ON DELETE RESTRICT").
+		ForeignKey("(user_id) REFERENCES users (id) ON DELETE RESTRICT").
 		Exec(ctx); err != nil {
 		panic(err.Error())
 	}

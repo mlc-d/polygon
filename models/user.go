@@ -13,10 +13,17 @@ type User struct {
 	Name      string    `bun:",notnull,unique" json:"name"`
 	Password  string    `bun:",notnull,type:text" json:"password"`
 	RoleID    uint      `json:"role_id"`
-	Role      *Role     `bun:"rel:belongs-to,join:role_id=id"`
+	Role      *Role     `bun:"rel:belongs-to,join:role_id=id" json:"-"`
 	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
-	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"-"`
+	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"-"`
+}
+
+type PublicUser struct {
+	Id        uint      `json:"id"`
+	Name      string    `json:"name"`
+	Role      uint      `json:"role"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func CreateUser(ctx context.Context, u *User) (err error) {
@@ -39,6 +46,8 @@ func GetUsers(ctx context.Context) (users []User) {
 	err := db.NewSelect().
 		Model(&users).
 		ExcludeColumn("password").
+		ExcludeColumn("updated_at").
+		ExcludeColumn("deleted_at").
 		Scan(ctx)
 	if err != nil {
 		panic(err.Error())

@@ -22,6 +22,7 @@ func CreateLocation(c echo.Context) (err error) {
 	}
 	location := models.Location{
 		Location: l.Location,
+		StatusID: l.StatusID,
 	}
 	if err = models.CreateLocation(database.Ctx, &location); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{

@@ -4,24 +4,24 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/mysqldialect"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
 	conf "gitlab.com/mlcprojects/wms/config"
+	"log"
 )
 
 var (
 	DB     *bun.DB
+	Pgdb   *sql.DB
 	Ctx    = context.Background()
 	config = conf.Cf
 )
 
 func InitDB() {
 	fmt.Println(config.Db.Dsn)
-	sqldb, err := sql.Open("mysql", config.Db.Dsn)
-	if err != nil {
-		panic(err)
-	}
-
-	DB = bun.NewDB(sqldb, mysqldialect.New())
+	dsn := config.Db.Dsn
+	Pgdb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
+	DB = bun.NewDB(Pgdb, pgdialect.New())
+	log.Print("connected to database")
 }

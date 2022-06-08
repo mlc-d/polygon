@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"gitlab.com/mlcprojects/wms/database"
 	"time"
 )
@@ -11,6 +12,8 @@ type Item struct {
 	UIC        string    `bun:",notnull,unique,type:varchar(6)" json:"uic"`
 	SkuID      uint      `json:"sku_id"`
 	Sku        *Sku      `bun:"rel:belongs-to,join:sku_id=id"`
+	LoteID     uint      `json:"lote_id"`
+	Lote       *Lote     `bun:"rel:belongs-to,join:lote_id=id"`
 	LocationID uint      `json:"location_id"`
 	Location   *Location `bun:"rel:belongs-to,join:location_id=id"`
 	StatusID   uint      `json:"status_id"`
@@ -73,5 +76,27 @@ func UpdateItem(ctx context.Context, i *Item) (err error) {
 			UserID:     i.UserID,
 		})
 	}
+	return
+}
+
+func AllocateItem(ctx context.Context, i *Item) (err error) {
+	i.UpdatedAt = time.Now()
+	db := database.Pgdb
+
+	cmd, err := db.Prepare(`
+		UPDATE items
+		SET location_id = l.id,
+    		status_id = l.status_id,
+    		updated_at = $1
+		FROM (SELECT id, status_id FROM locations WHERE id = $2) as l
+		WHERE items.id = $3;
+	`)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	defer cmd.Close()
+	cmd.Exec(i.UpdatedAt, i.LocationID, i.Id)
+
 	return
 }

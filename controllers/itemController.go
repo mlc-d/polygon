@@ -18,6 +18,7 @@ func CreateItem(c echo.Context) (err error) {
 	item := models.Item{
 		Id:         i.Id,
 		UIC:        i.UIC,
+		LoteID:     i.LoteID,
 		SkuID:      i.SkuID,
 		LocationID: i.LocationID,
 		StatusID:   i.StatusID,
@@ -51,8 +52,25 @@ func UpdateItem(c echo.Context) (err error) {
 			"error": utils.Msg["dbError"],
 		})
 	}
-	//fmt.Println("ECHO LA CONCHA TUYA")
 	return c.JSON(http.StatusOK, utils.Response{
 		"success": "actualizado",
+	})
+}
+
+func AllocateItem(c echo.Context) (err error) {
+	i := new(models.Item)
+	if err = c.Bind(i); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["jsonError"],
+		})
+	}
+	// validate request
+	if err = models.AllocateItem(database.Ctx, i); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["dbError"],
+		})
+	}
+	return c.JSON(http.StatusOK, utils.Response{
+		"success": "reubicado",
 	})
 }
