@@ -19,7 +19,7 @@ type History struct {
 	Status     *Status   `bun:"rel:belongs-to,join:status_id=id"`
 	UserID     uint      `json:"user_id"`
 	User       *Location `bun:"rel:belongs-to,join:user_id=id"`
-	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
+	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
 }
 
 func CreateHistory(ctx context.Context, h *History) (err error) {

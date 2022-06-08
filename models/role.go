@@ -10,8 +10,8 @@ type Role struct {
 	Id        uint      `bun:",pk,autoincrement" json:"id"`
 	Role      string    `bun:",notnull,unique" json:"role"`
 	IsAdmin   bool      `bun:",notnull" json:"is_admin"`
-	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
 	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
 }
 

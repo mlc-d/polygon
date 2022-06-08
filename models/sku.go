@@ -11,8 +11,8 @@ type Sku struct {
 	Sku       string    `bun:",notnull,unique" json:"name"`
 	ProductID uint      `json:"product_id"`
 	Product   *Product  `bun:"rel:belongs-to,join:product_id=id"`
-	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
 	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
 }
 

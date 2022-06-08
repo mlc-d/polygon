@@ -17,9 +17,9 @@ type Item struct {
 	Status     *Status   `bun:"rel:belongs-to,join:status_id=id"`
 	UserID     uint      `json:"user_id"`
 	User       *Location `bun:"rel:belongs-to,join:user_id=id"`
-	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
-	DeletedAt  time.Time `bun:",soft_delete,nullzero,type:timestamptz" json:"deleted_at"`
+	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
+	UpdatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
+	DeletedAt  time.Time `bun:",soft_delete,nullzero,type:timestamp" json:"deleted_at"`
 }
 
 func CreateItem(ctx context.Context, i *Item) (err error) {

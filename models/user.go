@@ -14,8 +14,8 @@ type User struct {
 	Password  string    `bun:",notnull,type:text" json:"password"`
 	RoleID    uint      `json:"role_id"`
 	Role      *Role     `bun:"rel:belongs-to,join:role_id=id"`
-	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
 	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
 }
 
