@@ -11,8 +11,8 @@ type Product struct {
 	Name        string    `bun:",notnull,unique" json:"name"`
 	Ref         string    `bun:",notnull,unique" json:"ref"`
 	Description string    `json:"description"`
-	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
-	UpdatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
+	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
+	UpdatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
 	DeletedAt   time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
 }
 

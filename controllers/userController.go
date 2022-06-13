@@ -64,3 +64,38 @@ func GetUsers(c echo.Context) (err error) {
 	users := models.GetUsers(database.Ctx)
 	return c.JSON(http.StatusOK, users)
 }
+
+func EditUser(c echo.Context) (err error) {
+	u := new(models.User)
+	if err = c.Bind(u); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["jsonError"],
+		})
+	}
+	//rol, err := strconv.Atoi(utils.StringValue(r))
+
+	if !utils.VerifyRole(c, int(u.RoleID)) {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["unauthorized"],
+		})
+	}
+	f, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
+	if f || err != nil || len(u.Name) > 30 {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["invalidData"],
+		})
+	}
+	user := models.User{
+		Id:       u.Id,
+		Name:     u.Name,
+		Password: u.Password,
+	}
+	if err = models.UpdateUser(database.Ctx, &user); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["dbError"],
+		})
+	}
+	return c.JSON(http.StatusCreated, utils.Response{
+		"success": "actualizado",
+	})
+}

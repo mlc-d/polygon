@@ -8,9 +8,10 @@ import (
 	"strconv"
 )
 
-type Response map[string]any
+type Response map[string]interface{}
 
 type CustomJWTClaims struct {
+	Uid string `json:"uid"`
 	Rid string `json:"rol"`
 	jwt.StandardClaims
 }

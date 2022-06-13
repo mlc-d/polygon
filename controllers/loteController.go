@@ -8,28 +8,28 @@ import (
 	"net/http"
 )
 
-func CreateLote(c echo.Context) (err error) {
+func CreateBatch(c echo.Context) (err error) {
 	if !(utils.VerifyRole(c, 3)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
-	l := new(models.Lote)
+	l := new(models.Batch)
 	if err = c.Bind(l); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
-	f, err := utils.ValidateInput(`[^\p{L}\d]`, l.Lote)
-	if f || len(l.Lote) > 4 || err != nil {
+	f, err := utils.ValidateInput(`[^\p{L}\d]`, l.Batch)
+	if f || len(l.Batch) > 4 || err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["invalidData"],
 		})
 	}
-	lote := models.Lote{
-		Lote: l.Lote,
+	batch := models.Batch{
+		Batch: l.Batch,
 	}
-	if err = models.CreateLote(database.Ctx, &lote); err != nil {
+	if err = models.CreateBatch(database.Ctx, &batch); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
@@ -39,7 +39,7 @@ func CreateLote(c echo.Context) (err error) {
 	})
 }
 
-func GetLotes(c echo.Context) (err error) {
-	locations := models.GetLotes(database.Ctx)
+func GetBatches(c echo.Context) (err error) {
+	locations := models.GetBatches(database.Ctx)
 	return c.JSON(http.StatusOK, locations)
 }

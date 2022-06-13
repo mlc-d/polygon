@@ -37,23 +37,13 @@ func GetHistories(c echo.Context) (err error) {
 	return c.JSON(http.StatusOK, histories)
 }
 
-/*func UpdateHistory(i models.Item) (err error) {
-	h := models.History{
-		ItemID:     i.Id,
-		SkuID:      i.SkuID,
-		LocationID: i.LocationID,
-		StatusID:   i.StatusID,
-		UserID:     i.UserID,
-	}
-	// validate request
-	if err = models.CreateHistory(database.Ctx, &h); err != nil {
+func GetItemHistory(c echo.Context) (err error) {
+	uic := c.QueryParam("uic")
+	var histories []models.PublicHistory
+	if err, histories = models.GetItemHistory(database.Ctx, uic); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})
 	}
-	//fmt.Println("ECHO LA CONCHA TUYA")
-	return c.JSON(http.StatusOK, utils.Response{
-		"success": "actualizado",
-	})
+	return c.JSON(http.StatusOK, histories)
 }
-*/

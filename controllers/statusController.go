@@ -29,7 +29,7 @@ func CreateStatus(c echo.Context) (err error) {
 	status := models.Status{
 		Status: s.Status,
 	}
-	if err = models.CreateStatus(database.Ctx, &status); err != nil {
+	if err = status.CreateStatus(database.Ctx); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["dbError"],
 		})

@@ -9,26 +9,27 @@ import (
 )
 
 func CreateItem(c echo.Context) (err error) {
-	i := new(models.Item)
-	if err = c.Bind(i); err != nil {
+	items := new([]models.Item)
+	if err = c.Bind(items); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
-	item := models.Item{
-		Id:         i.Id,
-		UIC:        i.UIC,
-		LoteID:     i.LoteID,
-		SkuID:      i.SkuID,
-		LocationID: i.LocationID,
-		StatusID:   i.StatusID,
-		UserID:     i.UserID,
+
+	unchangedItems := utils.Response{}
+
+	for _, item := range *items {
+		if err = item.CreateItem(database.Ctx); err != nil {
+			unchangedItems[err.Error()] = "cannot create item"
+		}
 	}
-	if err = models.CreateItem(database.Ctx, &item); err != nil {
+
+	if len(unchangedItems) > 0 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["dbError"],
+			"error": unchangedItems,
 		})
 	}
+
 	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "creado",
 	})
@@ -58,19 +59,37 @@ func UpdateItem(c echo.Context) (err error) {
 }
 
 func AllocateItem(c echo.Context) (err error) {
-	i := new(models.Item)
+	i := new([]models.Item)
+
 	if err = c.Bind(i); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["jsonError"],
 		})
 	}
-	// validate request
-	if err = models.AllocateItem(database.Ctx, i); err != nil {
+
+	unchangedItems := utils.Response{}
+	for _, v := range *i {
+		if err = v.AllocateItem(database.Ctx); err != nil {
+			unchangedItems[err.Error()] = "cannot reallocate item"
+		}
+	}
+	if len(unchangedItems) > 0 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["dbError"],
+			"errors": unchangedItems,
 		})
 	}
 	return c.JSON(http.StatusOK, utils.Response{
 		"success": "reubicado",
 	})
+}
+
+func GetItem(c echo.Context) (err error) {
+	uic := c.QueryParam("uic")
+	item, err := models.GetItem(database.Ctx, uic)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, utils.Response{
+			"error": "item no encontrado",
+		})
+	}
+	return c.JSON(http.StatusOK, item)
 }

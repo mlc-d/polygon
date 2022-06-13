@@ -1,0 +1,9 @@
+{
+  "db": {
+    "dsn": "postgres://username:password@localhost:5432/mydb?sslmode=disable"
+  },
+  "jwt": {
+    "acc_sec_key": "verysecurekey",
+    "ref_sec_key": "anothersecurekey"
+  }
+}

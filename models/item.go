@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gitlab.com/mlcprojects/wms/database"
 	"time"
@@ -12,27 +13,59 @@ type Item struct {
 	UIC        string    `bun:",notnull,unique,type:varchar(6)" json:"uic"`
 	SkuID      uint      `json:"sku_id"`
 	Sku        *Sku      `bun:"rel:belongs-to,join:sku_id=id"`
-	LoteID     uint      `json:"lote_id"`
-	Lote       *Lote     `bun:"rel:belongs-to,join:lote_id=id"`
+	BatchID    uint      `json:"batch_id"`
+	Batch      *Batch    `bun:"rel:belongs-to,join:batch_id=id"`
 	LocationID uint      `json:"location_id"`
 	Location   *Location `bun:"rel:belongs-to,join:location_id=id"`
 	StatusID   uint      `json:"status_id"`
 	Status     *Status   `bun:"rel:belongs-to,join:status_id=id"`
 	UserID     uint      `json:"user_id"`
-	User       *Location `bun:"rel:belongs-to,join:user_id=id"`
-	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
-	UpdatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
-	DeletedAt  time.Time `bun:",soft_delete,nullzero,type:timestamp" json:"deleted_at"`
+	User       *User     `bun:"rel:belongs-to,join:user_id=id"`
+	CreatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz"`
+	UpdatedAt  time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
+	DeletedAt  time.Time `bun:",soft_delete,nullzero,type:timestamptz"`
 }
 
-func CreateItem(ctx context.Context, i *Item) (err error) {
+type PublicItem struct {
+	Id         uint      `json:"id"`
+	Uic        string    `json:"uic"`
+	SkuID      uint      `json:"sku_id"`
+	Sku        string    `json:"sku"`
+	BatchID    uint      `json:"batch_id"`
+	Batch      string    `json:"batch"`
+	LocationID uint      `json:"location_id"`
+	Location   string    `json:"location"`
+	StatusID   uint      `json:"status_id"`
+	Status     string    `json:"status"`
+	UserID     uint      `json:"user_id"`
+	User       string    `json:"user"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+func (i *Item) CreateItem(ctx context.Context) (err error) {
 	db := database.DB
 	_, err = db.NewInsert().
 		Model(i).
 		Exec(ctx)
+
+	if err != nil {
+		err = errors.New(i.UIC)
+		return err
+	}
+
+	var itemId uint
+
+	err = db.NewSelect().
+		Model(&Item{}).
+		Column("id").
+		Where("uic = ?", i.UIC).
+		Limit(1).
+		Scan(ctx, &itemId)
+
 	if err == nil {
-		_ = CreateHistory(ctx, &History{
-			ItemID:     i.Id,
+		fmt.Println("crear historia")
+		err = CreateHistory(ctx, &History{
+			ItemID:     itemId,
 			SkuID:      i.SkuID,
 			LocationID: i.LocationID,
 			StatusID:   i.StatusID,
@@ -42,17 +75,54 @@ func CreateItem(ctx context.Context, i *Item) (err error) {
 	return
 }
 
-func GetItems(ctx context.Context) (items []Item) {
+func GetItems(ctx context.Context) (items []PublicItem) {
 	db := database.DB
 	err := db.NewSelect().
 		Model(&items).
-		//ExcludeColumn("updated_at").
-		ExcludeColumn("deleted_at").
+		ModelTableExpr("items").
+		Column("items.id", "items.uic", "items.sku_id", "items.batch_id", "items.location_id", "items.status_id", "items.user_id", "items.updated_at").
+		ColumnExpr("sku.sku as sku").
+		ColumnExpr("b.batch as batch").
+		ColumnExpr("l.location as location").
+		ColumnExpr("s.status as status").
+		ColumnExpr("u.name as user").
+		Join("left join skus as sku").JoinOn("sku.id = items.sku_id").
+		Join("left join batches as b").JoinOn("b.id = items.batch_id").
+		Join("left join locations as l").JoinOn("l.id = items.location_id").
+		Join("left join statuses as s").JoinOn("s.id = items.status_id").
+		Join("left join users as u").JoinOn("u.id = items.user_id").
+		Limit(500).
+		OrderExpr("items.id DESC").
 		Scan(ctx)
 	if err != nil {
 		panic(err.Error())
 	}
 	return
+}
+
+func GetItem(ctx context.Context, uic string) (i PublicItem, err error) {
+	db := database.DB
+	err = db.NewSelect().
+		Model(&i).
+		ModelTableExpr("items").
+		Column("items.id", "items.uic", "items.sku_id", "items.batch_id", "items.location_id", "items.status_id", "items.user_id", "items.updated_at").
+		ColumnExpr("sku.sku as sku").
+		ColumnExpr("b.batch as batch").
+		ColumnExpr("l.location as location").
+		ColumnExpr("s.status as status").
+		ColumnExpr("u.name as user").
+		Join("left join skus as sku").JoinOn("sku.id = items.sku_id").
+		Join("left join batches as b").JoinOn("b.id = items.batch_id").
+		Join("left join locations as l").JoinOn("l.id = items.location_id").
+		Join("left join statuses as s").JoinOn("s.id = items.status_id").
+		Join("left join users as u").JoinOn("u.id = items.user_id").
+		Where("items.uic = ?", uic).
+		Limit(1).
+		Scan(ctx)
+	if err != nil {
+		return PublicItem{}, err
+	}
+	return i, err
 }
 
 func UpdateItem(ctx context.Context, i *Item) (err error) {
@@ -79,24 +149,101 @@ func UpdateItem(ctx context.Context, i *Item) (err error) {
 	return
 }
 
-func AllocateItem(ctx context.Context, i *Item) (err error) {
+func (i *Item) AllocateItem(ctx context.Context) (err error) {
 	i.UpdatedAt = time.Now()
 	db := database.Pgdb
+
+	qry, err := db.Query(`
+		SELECT
+		    id,
+		    sku_id,
+		    status_id,
+		    location_id
+		FROM items
+		WHERE uic = $1
+	`, i.UIC)
+
+	if err != nil {
+		return
+	}
+
+	var currentLocation uint
+
+	for qry.Next() {
+		err = qry.Scan(&i.Id, &i.SkuID, &i.StatusID, &currentLocation)
+		if err != nil || i.Id == 0 {
+			err = errors.New(i.UIC)
+			return
+		}
+	}
+
+	if i.StatusID == 4 || i.LocationID == currentLocation || i.Id == 0 {
+		err = errors.New(i.UIC)
+		return
+	}
 
 	cmd, err := db.Prepare(`
 		UPDATE items
 		SET location_id = l.id,
     		status_id = l.status_id,
-    		updated_at = $1
-		FROM (SELECT id, status_id FROM locations WHERE id = $2) as l
-		WHERE items.id = $3;
+    		user_id = $1,
+    		updated_at = $2
+		FROM (SELECT id, status_id FROM locations WHERE id = $3) as l
+		WHERE items.uic = $4;
 	`)
 	if err != nil {
-		fmt.Println(err.Error())
 		return
 	}
 	defer cmd.Close()
-	cmd.Exec(i.UpdatedAt, i.LocationID, i.Id)
+	cmd.Exec(i.UserID, i.UpdatedAt, i.LocationID, i.UIC)
 
+	err = CreateHistory(ctx, &History{
+		ItemID:     i.Id,
+		SkuID:      i.SkuID,
+		LocationID: i.LocationID,
+		StatusID:   i.StatusID,
+		UserID:     i.UserID,
+	})
 	return
+}
+
+func (i *Item) checkItemAvailable(ctx context.Context) (err error) {
+	db := database.Pgdb
+
+	qry, err := db.Query(`
+		SELECT
+		    status_id
+		FROM items
+		WHERE uic = $1
+		LIMIT 1;
+	`, i.UIC)
+	if err != nil {
+		return
+	}
+
+	var statusId uint
+	for qry.Next() {
+		err = qry.Scan(&statusId)
+		if err == nil && statusId != 4 {
+			return nil
+		}
+	}
+	return errors.New(i.UIC)
+}
+
+func (i *Item) checkRedundantEntry(ctx context.Context) (err error) {
+	db := database.DB
+
+	mockItem := Item{}
+
+	err = db.NewSelect().
+		Model(&mockItem).
+		//Table("items").
+		Where("item.uic = ?", i.UIC).
+		Scan(ctx)
+
+	if i.LocationID != mockItem.LocationID {
+		return nil
+	}
+	return errors.New(i.UIC)
 }

@@ -9,10 +9,10 @@ import (
 type Role struct {
 	Id        uint      `bun:",pk,autoincrement" json:"id"`
 	Role      string    `bun:",notnull,unique" json:"role"`
-	IsAdmin   bool      `bun:",notnull" json:"is_admin"`
-	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamp" json:"updated_at"`
-	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
+	IsAdmin   bool      `bun:",notnull" json:"-"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"-"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"-"`
+	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"-"`
 }
 
 func CreateRole(ctx context.Context, r *Role) (err error) {

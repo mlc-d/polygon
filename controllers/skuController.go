@@ -41,6 +41,6 @@ func CreateSku(c echo.Context) (err error) {
 }
 
 func GetSkus(c echo.Context) (err error) {
-	locations := models.GetLotes(database.Ctx)
-	return c.JSON(http.StatusOK, locations)
+	skus := models.GetSkus(database.Ctx)
+	return c.JSON(http.StatusOK, skus)
 }

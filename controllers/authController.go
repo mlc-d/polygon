@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	conf "gitlab.com/mlcprojects/wms/config"
@@ -23,12 +24,12 @@ func Login(c echo.Context) (err error) {
 			"error": "El servidor no reconoce la información enviada",
 		})
 	}
-	if user.RoleID, err = models.ValidateUser(database.Ctx, user); err != nil {
+	if user.RoleID, user.Id, err = models.ValidateUser(database.Ctx, user); err != nil {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": "Credenciales inválidas",
 		})
 	}
-	token, err := createAccessToken(user.Name, utils.StringValue(user.RoleID))
+	token, err := createAccessToken(user.Name, utils.StringValue(user.RoleID), utils.StringValue(user.Id))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.Response{
 			"error": "Problema al crear un token de acceso",
@@ -45,9 +46,10 @@ func Login(c echo.Context) (err error) {
 	})
 }
 
-func createAccessToken(subject, rolId string) (accessToken string, err error) {
+func createAccessToken(subject, rolId, userId string) (accessToken string, err error) {
 	expireDate := time.Now().Add(time.Minute * 5)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, utils.CustomJWTClaims{
+		userId,
 		rolId,
 		jwt.StandardClaims{
 			Subject:   subject,
@@ -72,7 +74,7 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 		return nil, err
 	}
 	if !accToken.Valid {
-		return nil, c.String(http.StatusInternalServerError, "")
+		return nil, errors.New("invalid token...")
 	}
 	claims, _ := accToken.Claims.(jwt.MapClaims)
 	c.Set("rolFromReq", claims["rol"])
@@ -84,6 +86,7 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 func createRefreshToken(c echo.Context, u models.User) (err error) {
 	expireDate := time.Now().Add(time.Hour * 24 * 7)
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, &utils.CustomJWTClaims{
+		utils.StringValue(u.Id),
 		utils.StringValue(u.RoleID),
 		jwt.StandardClaims{
 			Subject:   u.Name,
@@ -131,7 +134,8 @@ func Refresh(c echo.Context) (err error) {
 	claims := refToken.Claims.(jwt.MapClaims)
 	subject := utils.StringValue(claims["sub"])
 	rolID := utils.StringValue(claims["rol"])
-	newAccToken, err := createAccessToken(subject, rolID)
+	userID := utils.StringValue(claims["uid"])
+	newAccToken, err := createAccessToken(subject, rolID, userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, utils.Response{
 			"error": utils.Msg["jwtError"],
