@@ -17,6 +17,14 @@ type Sku struct {
 	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
 }
 
+type PublicSku struct {
+	Id        uint      `json:"id"`
+	Sku       string    `json:"sku"`
+	ProductID uint      `json:"product_id"`
+	Ref       string    `json:"ref"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 func CreateSku(ctx context.Context, s *Sku) (err error) {
 	db := database.DB
 	_, err = db.NewInsert().
@@ -25,18 +33,17 @@ func CreateSku(ctx context.Context, s *Sku) (err error) {
 	return
 }
 
-func GetSkus(ctx context.Context) (skus []Sku) {
+func GetSkus(ctx context.Context) (skus []PublicSku) {
 	db := database.DB
 	err := db.NewSelect().
-		Model(&skus).
+		Model(&Sku{}).
 		Column("sku.id").
 		Column("sku.sku").
 		Column("sku.product_id").
-		/*Relation("Product", func(q *bun.SelectQuery) *bun.SelectQuery {
-			return q.ColumnExpr("ref as product_ref")
-		}).*/
-		Column("sku.created_at").
-		Scan(ctx)
+		Column("p.ref").
+		Join("left join products as p").JoinOn("p.id = sku.product_id").
+		Column("sku.updated_at").
+		Scan(ctx, &skus)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -47,6 +54,7 @@ func GetSku(ctx context.Context) (s *Sku) {
 	db := database.DB
 	err := db.NewSelect().
 		Model(&s).
+		TableExpr("skus as sku").
 		Column("sku.id").
 		Column("sku.sku").
 		Column("sku.product_id").

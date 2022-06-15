@@ -2,15 +2,16 @@ package controllers
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/labstack/echo/v4"
 	conf "gitlab.com/mlcprojects/wms/config"
 	"gitlab.com/mlcprojects/wms/database"
 	"gitlab.com/mlcprojects/wms/models"
 	"gitlab.com/mlcprojects/wms/utils"
-	"net/http"
-	"strings"
-	"time"
 )
 
 var (
@@ -74,7 +75,7 @@ func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 		return nil, err
 	}
 	if !accToken.Valid {
-		return nil, errors.New("invalid token...")
+		return nil, errors.New("invalid token")
 	}
 	claims, _ := accToken.Claims.(jwt.MapClaims)
 	c.Set("rolFromReq", claims["rol"])
@@ -143,5 +144,18 @@ func Refresh(c echo.Context) (err error) {
 	}
 	return c.JSON(http.StatusOK, utils.Response{
 		"accToken": newAccToken,
+	})
+}
+
+func Logout(c echo.Context) (err error) {
+	cookie, err := c.Cookie("refreshToken")
+	if err != nil {
+		return err
+	}
+	cookie.Value = ""
+	cookie.Expires = time.Unix(0, 0)
+	c.SetCookie(cookie)
+	return c.JSON(http.StatusOK, utils.Response{
+		"ok": "logged out",
 	})
 }

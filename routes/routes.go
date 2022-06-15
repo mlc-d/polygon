@@ -1,11 +1,12 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	conf "gitlab.com/mlcprojects/wms/config"
 	"gitlab.com/mlcprojects/wms/controllers"
-	"net/http"
 )
 
 const version = "/api/v1"
@@ -66,4 +67,6 @@ func SetUpRoutes(e *echo.Echo) {
 	e.POST("/login", controllers.Login)
 	//refresh
 	e.POST("/refresh", controllers.Refresh)
+	//logout
+	e.POST("/logout", controllers.Logout)
 }

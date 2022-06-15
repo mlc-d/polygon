@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/labstack/echo/v4"
 	"gitlab.com/mlcprojects/wms/database"
 	"gitlab.com/mlcprojects/wms/models"
 	"gitlab.com/mlcprojects/wms/utils"
-	"net/http"
-	"strconv"
 )
 
 func CreateLocation(c echo.Context) (err error) {
@@ -41,7 +42,7 @@ func GetLocations(c echo.Context) (err error) {
 }
 
 func GetLocation(c echo.Context) (err error) {
-	loc := c.QueryParam("loc")
+	loc := c.QueryParam("l")
 	location, err := models.GetLocation(database.Ctx, loc)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, utils.Response{
@@ -60,6 +61,9 @@ func GetLocationByStatus(c echo.Context) (err error) {
 		})
 	}
 	locations, err := models.GetLocationByStatus(database.Ctx, uint(statusId))
+	if err != nil {
+		return err
+	}
 	return c.JSON(http.StatusOK, locations)
 }
 

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/mlcprojects/wms/database"
 	"gitlab.com/mlcprojects/wms/models"
@@ -67,15 +68,16 @@ func AllocateItem(c echo.Context) (err error) {
 		})
 	}
 
-	unchangedItems := utils.Response{}
+	unchangedItems := make([]string, 0)
 	for _, v := range *i {
 		if err = v.AllocateItem(database.Ctx); err != nil {
-			unchangedItems[err.Error()] = "cannot reallocate item"
+			unchangedItems = append(unchangedItems, err.Error()+" cannot reallocate item")
+			//unchangedItems[err.Error()] = "cannot reallocate item"
 		}
 	}
 	if len(unchangedItems) > 0 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
-			"errors": unchangedItems,
+			"error": unchangedItems,
 		})
 	}
 	return c.JSON(http.StatusOK, utils.Response{
@@ -85,6 +87,11 @@ func AllocateItem(c echo.Context) (err error) {
 
 func GetItem(c echo.Context) (err error) {
 	uic := c.QueryParam("uic")
+
+	fmt.Println()
+	fmt.Println(c.Request())
+	fmt.Println()
+
 	item, err := models.GetItem(database.Ctx, uic)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, utils.Response{
