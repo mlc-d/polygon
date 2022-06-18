@@ -2,9 +2,10 @@ package models
 
 import (
 	"context"
+	"time"
+
 	"github.com/uptrace/bun"
 	"gitlab.com/mlcprojects/wms/database"
-	"time"
 )
 
 type Sku struct {
@@ -33,7 +34,7 @@ func CreateSku(ctx context.Context, s *Sku) (err error) {
 	return
 }
 
-func GetSkus(ctx context.Context) (skus []PublicSku) {
+func GetSkus(ctx context.Context) (skus []Sku) {
 	db := database.DB
 	err := db.NewSelect().
 		Model(&Sku{}).

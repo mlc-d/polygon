@@ -2,18 +2,19 @@ package models
 
 import (
 	"context"
-	"gitlab.com/mlcprojects/wms/database"
 	"time"
+
+	"gitlab.com/mlcprojects/wms/database"
 )
 
 type Product struct {
-	Id          uint      `bun:",pk,autoincrement" json:"id"`
-	Name        string    `bun:",notnull,unique" json:"name"`
-	Ref         string    `bun:",notnull,unique" json:"ref"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
-	DeletedAt   time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
+	Id          uint      `bun:",pk,autoincrement" json:"id,omitempty"`
+	Name        string    `bun:",notnull,unique" json:"name,omitempty"`
+	Ref         string    `bun:",notnull,unique" json:"ref,omitempty"`
+	Description string    `json:"description,omitempty"`
+	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at,omitempty"`
+	UpdatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at,omitempty"`
+	DeletedAt   time.Time `bun:",soft_delete,nullzero" json:"deleted_at,omitempty"`
 }
 
 func CreateProduct(ctx context.Context, p *Product) (err error) {

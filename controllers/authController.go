@@ -150,7 +150,9 @@ func Refresh(c echo.Context) (err error) {
 func Logout(c echo.Context) (err error) {
 	cookie, err := c.Cookie("refreshToken")
 	if err != nil {
-		return err
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"ok": "false",
+		})
 	}
 	cookie.Value = ""
 	cookie.Expires = time.Unix(0, 0)

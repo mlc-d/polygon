@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"gitlab.com/mlcprojects/wms/database"
 	"time"
+
+	"gitlab.com/mlcprojects/wms/database"
 )
 
 type Item struct {
@@ -43,6 +44,9 @@ type PublicItem struct {
 }
 
 func (i *Item) CreateItem(ctx context.Context) (err error) {
+	//just in case
+	i.StatusID = 1
+
 	db := database.DB
 	_, err = db.NewInsert().
 		Model(i).
@@ -153,6 +157,7 @@ func (i *Item) AllocateItem(ctx context.Context) (err error) {
 	i.UpdatedAt = time.Now()
 	db := database.Pgdb
 
+	// get complete current information about the item
 	qry, err := db.Query(`
 		SELECT
 		    id,
@@ -177,11 +182,13 @@ func (i *Item) AllocateItem(ctx context.Context) (err error) {
 		}
 	}
 
+	// checks for redundante requests, e.g. moving the item to the same location where it already is at
 	if i.StatusID == 4 || i.LocationID == currentLocation || i.Id == 0 {
 		err = errors.New(i.UIC)
 		return
 	}
 
+	// actual update
 	cmd, err := db.Prepare(`
 		UPDATE items
 		SET location_id = l.id,
@@ -197,53 +204,36 @@ func (i *Item) AllocateItem(ctx context.Context) (err error) {
 	defer cmd.Close()
 	cmd.Exec(i.UserID, i.UpdatedAt, i.LocationID, i.UIC)
 
-	err = CreateHistory(ctx, &History{
-		ItemID:     i.Id,
-		SkuID:      i.SkuID,
-		LocationID: i.LocationID,
-		StatusID:   i.StatusID,
-		UserID:     i.UserID,
-	})
-	return
-}
-
-func (i *Item) checkItemAvailable(ctx context.Context) (err error) {
-	db := database.Pgdb
-
-	qry, err := db.Query(`
+	// controller doesn't know the default status for the received location
+	// here we get that value in order to create a record in the history table
+	qry, err = db.Query(`
 		SELECT
-		    status_id
-		FROM items
-		WHERE uic = $1
-		LIMIT 1;
-	`, i.UIC)
+			status_id
+		FROM locations
+		WHERE id = $1;
+	`, i.LocationID)
+
 	if err != nil {
 		return
 	}
 
-	var statusId uint
+	var newStatusID uint
+
 	for qry.Next() {
-		err = qry.Scan(&statusId)
-		if err == nil && statusId != 4 {
-			return nil
+		err = qry.Scan(&newStatusID)
+		if err != nil || i.Id == 0 {
+			err = errors.New(i.UIC)
+			return
 		}
 	}
-	return errors.New(i.UIC)
-}
 
-func (i *Item) checkRedundantEntry(ctx context.Context) (err error) {
-	db := database.DB
-
-	mockItem := Item{}
-
-	err = db.NewSelect().
-		Model(&mockItem).
-		//Table("items").
-		Where("item.uic = ?", i.UIC).
-		Scan(ctx)
-
-	if i.LocationID != mockItem.LocationID {
-		return nil
-	}
-	return errors.New(i.UIC)
+	// create a history for this movement
+	err = CreateHistory(ctx, &History{
+		ItemID:     i.Id,
+		SkuID:      i.SkuID,
+		LocationID: i.LocationID,
+		StatusID:   newStatusID,
+		UserID:     i.UserID,
+	})
+	return
 }

@@ -3,18 +3,19 @@ package models
 import (
 	"context"
 	"fmt"
-	"gitlab.com/mlcprojects/wms/database"
 	"time"
+
+	"gitlab.com/mlcprojects/wms/database"
 )
 
 type Location struct {
-	Id        uint      `bun:",pk,autoincrement" json:"id"`
-	Location  string    `bun:",notnull,unique" json:"location"`
-	StatusID  uint      `json:"status_id"`
-	Status    *Status   `bun:"rel:belongs-to,join:status_id=id"`
-	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at"`
-	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at"`
-	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at"`
+	Id        uint      `bun:",pk,autoincrement" json:"id,omitempty"`
+	Location  string    `bun:",notnull,unique" json:"location,omitempty"`
+	StatusID  uint      `json:"status_id,omitempty"`
+	Status    *Status   `bun:"rel:belongs-to,join:status_id=id" json:"status,omitempty"`
+	CreatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"created_at,omitempty"`
+	UpdatedAt time.Time `bun:",nullzero,notnull,default:current_timestamp,type:timestamptz" json:"updated_at,omitempty"`
+	DeletedAt time.Time `bun:",soft_delete,nullzero" json:"deleted_at,omitempty"`
 }
 
 func CreateLocation(ctx context.Context, l *Location) (err error) {
