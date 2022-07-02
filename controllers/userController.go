@@ -7,6 +7,7 @@ import (
 	"gitlab.com/mlcprojects/wms/utils"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func CreateUser(c echo.Context) (err error) {
@@ -22,8 +23,10 @@ func CreateUser(c echo.Context) (err error) {
 			"error": utils.Msg["unauthorized"],
 		})
 	}
-	f, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
-	if f || err != nil || len(u.Name) > 30 || len(u.Password) < 4 {
+
+	u.Name = sanitizeUserName(u.Name)
+	notOk, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
+	if notOk || err != nil || len(u.Name) > 30 || len(u.Password) < 4 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["invalidData"],
 		})
@@ -72,15 +75,17 @@ func EditUser(c echo.Context) (err error) {
 			"error": utils.Msg["jsonError"],
 		})
 	}
-	//rol, err := strconv.Atoi(utils.StringValue(r))
 
 	if !utils.VerifyRole(c, int(u.RoleID)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
-	f, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
-	if f || err != nil || len(u.Name) > 30 {
+
+	// sanitizes data
+	u.Name = sanitizeUserName(u.Name)
+	notOk, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
+	if notOk || err != nil || len(u.Name) > 30 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["invalidData"],
 		})
@@ -98,4 +103,27 @@ func EditUser(c echo.Context) (err error) {
 	return c.JSON(http.StatusCreated, utils.Response{
 		"success": "actualizado",
 	})
+}
+
+func DeleteUser(c echo.Context) (err error) {
+	u := new(models.User)
+	if err = c.Bind(u); err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["jsonError"],
+		})
+	}
+	err = models.DeleteUser(database.Ctx, u)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, utils.Response{
+			"error": utils.Msg["dbError"],
+		})
+	}
+
+	return c.JSON(http.StatusCreated, utils.Response{
+		"success": "eliminado",
+	})
+}
+
+func sanitizeUserName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
 }

@@ -45,6 +45,7 @@ func SetUpRoutes(e *echo.Echo) {
 	apiGroup.GET("/users/:id", controllers.GetUser)
 	apiGroup.POST("/users", controllers.CreateUser)
 	apiGroup.PATCH("/users", controllers.EditUser)
+	apiGroup.DELETE("/users", controllers.DeleteUser)
 	// products
 	apiGroup.GET("/products", controllers.GetProducts)
 	apiGroup.POST("/products", controllers.CreateProduct)
@@ -63,10 +64,10 @@ func SetUpRoutes(e *echo.Echo) {
 	// batches
 	apiGroup.GET("/batches", controllers.GetBatches)
 	apiGroup.POST("/batches", controllers.CreateBatch)
-	//login
+	// login
 	e.POST("/login", controllers.Login)
-	//refresh
+	// refresh
 	e.POST("/refresh", controllers.Refresh)
-	//logout
+	// logout
 	e.POST("/logout", controllers.Logout)
 }

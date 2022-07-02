@@ -52,6 +52,7 @@ func GetUsers(ctx context.Context) (users []PublicUser) {
 		Column("users.id", "users.name", "r.role", "users.created_at").
 		ColumnExpr("r.id as role_id").
 		Join("left join roles as r").JoinOn("r.id = users.role_id").
+		Where("users.deleted_at IS NULL").
 		Order("users.id ASC").
 		Scan(ctx)
 	if err != nil {
@@ -99,6 +100,15 @@ func UpdateUser(ctx context.Context, u *User) (err error) {
 	return
 }
 
+func DeleteUser(ctx context.Context, u *User) (err error) {
+	db := database.DB
+	_, err = db.NewDelete().
+		Model(u).
+		WherePK().
+		Exec(ctx)
+	return
+}
+
 func ValidateUser(ctx context.Context, u *User) (r, i uint, err error) {
 	db := database.DB
 	user := User{}
@@ -114,13 +124,3 @@ func ValidateUser(ctx context.Context, u *User) (r, i uint, err error) {
 	}
 	return user.RoleID, user.Id, bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.Password))
 }
-
-//func GetUserID(ctx context.Context, u *User) (id uint, err error) {
-//	db := database.DB
-//
-//	err = db.NewSelect().
-//		Model(&User{}).
-//		Column("id").
-//		Where("name = ?")
-//
-//}

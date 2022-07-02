@@ -17,11 +17,11 @@ type CustomJWTClaims struct {
 }
 
 var (
-	//Msg is a dictionary for possible json responses, in Spanish
-	//keys:
-	//jsonError
-	//invalidData
-	//dbError
+	// Msg is a dictionary for possible json responses, in Spanish
+	// keys:
+	// jsonError
+	// invalidData
+	// dbError
 	Msg = map[string]string{
 		"jsonError":    "El servidor no reconoce la información enviada",
 		"invalidData":  "La información enviada tiene inconsistencias",
@@ -50,8 +50,8 @@ func ThrowErrorString(i interface{}) error {
 	return fmt.Errorf("error: %v", i)
 }
 
-func VerifyRole(e echo.Context, downTo int) bool {
-	rol := e.Get("rolFromReq")
+func VerifyRole(c echo.Context, downTo int) bool {
+	rol := c.Get("roleFromReq")
 	if val, err := strconv.Atoi(StringValue(rol)); err != nil || val >= downTo {
 		return false
 	}
