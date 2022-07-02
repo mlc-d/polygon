@@ -18,9 +18,14 @@ type JwtConfig struct {
 	RefSecKey string `mapstructure:"ref_sec_key"`
 }
 
+type OriginConfig struct {
+	Url string `mapstructure:"url"`
+}
+
 type Config struct {
-	Db  DbConfig  `mapstructure:"db"`
-	Jwt JwtConfig `mapstructure:"jwt"`
+	Db      DbConfig     `mapstructure:"db"`
+	Jwt     JwtConfig    `mapstructure:"jwt"`
+	Origins OriginConfig `mapstructure:"origins"`
 }
 
 func LoadConfig() (c Config, err error) {

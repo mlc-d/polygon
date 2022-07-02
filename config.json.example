@@ -6,4 +6,7 @@
     "acc_sec_key": "verysecurekey",
     "ref_sec_key": "anothersecurekey"
   }
+  "origins": {
+    "url": "*"
+  }
 }
