@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -11,16 +12,14 @@ import (
 )
 
 func CreateLocation(c echo.Context) (err error) {
-	if !(utils.VerifyRole(c, 4)) {
+	if !(utils.VerifyRole(c, SUPERVISOR_ROLE_ID)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Location)
 	if err = c.Bind(l); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	location := models.Location{
 		Location: l.Location,
@@ -68,16 +67,14 @@ func GetLocationByStatus(c echo.Context) (err error) {
 }
 
 func EditLocation(c echo.Context) (err error) {
-	if !(utils.VerifyRole(c, 5)) {
+	if !(utils.VerifyRole(c, LEADER_ROLE_ID)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	l := new(models.Location)
 	if err = c.Bind(l); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	location := models.Location{
 		Id:       l.Id,

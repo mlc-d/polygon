@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/mlcprojects/wms/database"
 	"gitlab.com/mlcprojects/wms/models"
@@ -9,16 +10,14 @@ import (
 )
 
 func CreateRole(c echo.Context) (err error) {
-	if !(utils.VerifyRole(c, 2)) {
+	if !(utils.VerifyRole(c, ADMIN_ROLE_ID)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
 	}
 	r := new(models.Role)
 	if err = c.Bind(r); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	role := models.Role{
 		Role:    r.Role,

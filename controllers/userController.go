@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"gitlab.com/mlcprojects/wms/database"
 	"gitlab.com/mlcprojects/wms/models"
@@ -14,11 +15,9 @@ func CreateUser(c echo.Context) (err error) {
 	u := new(models.User)
 
 	if err = c.Bind(u); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
-	if !(utils.VerifyRole(c, 3)) {
+	if !(utils.VerifyRole(c, MANAGER_ROLE_ID)) {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["unauthorized"],
 		})
@@ -71,9 +70,7 @@ func GetUsers(c echo.Context) (err error) {
 func EditUser(c echo.Context) (err error) {
 	u := new(models.User)
 	if err = c.Bind(u); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 
 	if !utils.VerifyRole(c, int(u.RoleID)) {
@@ -84,8 +81,8 @@ func EditUser(c echo.Context) (err error) {
 
 	// sanitizes data
 	u.Name = sanitizeUserName(u.Name)
-	notOk, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
-	if notOk || err != nil || len(u.Name) > 30 {
+	ok, err := utils.ValidateInput(`[^\p{L}.]`, u.Name)
+	if !ok || err != nil || len(u.Name) > 30 {
 		return c.JSON(http.StatusBadRequest, utils.Response{
 			"error": utils.Msg["invalidData"],
 		})
@@ -96,32 +93,22 @@ func EditUser(c echo.Context) (err error) {
 		Password: u.Password,
 	}
 	if err = models.UpdateUser(database.Ctx, &user); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["dbError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["dbError"]))
 	}
-	return c.JSON(http.StatusCreated, utils.Response{
-		"success": "actualizado",
-	})
+	return c.String(http.StatusCreated, "ok - creado")
 }
 
 func DeleteUser(c echo.Context) (err error) {
 	u := new(models.User)
 	if err = c.Bind(u); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	err = models.DeleteUser(database.Ctx, u)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["dbError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["dbError"]))
 	}
 
-	return c.JSON(http.StatusCreated, utils.Response{
-		"success": "eliminado",
-	})
+	return c.String(http.StatusCreated, "ok - eliminado")
 }
 
 func sanitizeUserName(name string) string {

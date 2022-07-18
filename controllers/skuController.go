@@ -16,9 +16,7 @@ func CreateSku(c echo.Context) (err error) {
 	}
 	s := new(models.Sku)
 	if err = c.Bind(s); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	/*f, err := utils.ValidateInput(`[^\p{L}\d-]`, s.Sku)
 	if f || err != nil || len(s.Sku) > 10 {

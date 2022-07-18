@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -18,34 +19,36 @@ var (
 	config = conf.Cf
 )
 
+const (
+	DEVEL_ROLE_ID = iota + 1
+	ADMIN_ROLE_ID
+	MANAGER_ROLE_ID
+	SUPERVISOR_ROLE_ID
+	LEADER_ROLE_ID
+	PUBLISHER_ROLE_ID
+	OPERATOR_ROLE_ID
+)
+
 // Login validates credentials against database, and returns the proper tokens if everything is OK
 func Login(c echo.Context) (err error) {
 	// create a user object with the information sent by the client
 	user := new(models.User)
 	if err = c.Bind(&user); err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
-			"error": "El servidor no reconoce la información enviada",
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	// verify the user object against the information in the database
 	if user.RoleID, user.Id, err = models.ValidateUser(database.Ctx, user); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": "Credenciales inválidas",
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["invalidCredentials"]))
 	}
 	// creates the access token
 	token, err := createAccessToken(user.Name, utils.StringValue(user.RoleID), utils.StringValue(user.Id))
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
-			"error": "Problema al crear un token de acceso",
-		})
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("error: %s", utils.Msg["jwtError"]))
 	}
 	// creates the refresh token, passing down the context so the information can be added to the cookies
 	err = createRefreshToken(c, *user)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, utils.Response{
-			"error": "Problema al crear token de refresco",
-		})
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("error: %s", utils.Msg["jwtError"]))
 	}
 	// everything is OK, returns access token
 	return c.JSON(http.StatusOK, utils.Response{
@@ -75,7 +78,7 @@ func createAccessToken(subject, rolId, userId string) (accessToken string, err e
 func ValidateAccessToken(auth string, c echo.Context) (interface{}, error) {
 	accToken, err := jwt.Parse(auth, func(t *jwt.Token) (interface{}, error) {
 		if t.Method.Alg() != "HS256" {
-			return nil, utils.ThrowErrorString("unexpected signing algorithm")
+			return nil, errors.New("unexpected signing algorithm")
 		}
 		return []byte(config.Jwt.AccSecKey), nil
 	})
@@ -130,7 +133,7 @@ func Refresh(c echo.Context) (err error) {
 	// parses token from cookie
 	refToken, err := jwt.Parse(requestToken, func(t *jwt.Token) (interface{}, error) {
 		if t.Method.Alg() != "HS256" {
-			return nil, utils.ThrowErrorString("unexpected signing algorithm")
+			return nil, errors.New("unexpected signing algorithm")
 		}
 		return []byte(config.Jwt.RefSecKey), nil
 	})
@@ -169,14 +172,10 @@ func Refresh(c echo.Context) (err error) {
 func Logout(c echo.Context) (err error) {
 	cookie, err := c.Cookie("refreshToken")
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"ok": "false",
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	cookie.Value = ""
 	cookie.Expires = time.Unix(0, 0)
 	c.SetCookie(cookie)
-	return c.JSON(http.StatusOK, utils.Response{
-		"ok": "logged out",
-	})
+	return c.String(http.StatusOK, fmt.Sprintf("ok - logged out"))
 }

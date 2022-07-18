@@ -16,9 +16,7 @@ func CreateProduct(c echo.Context) (err error) {
 	}
 	p := new(models.Product)
 	if err = c.Bind(p); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	/*wrongName, err := utils.ValidateInput(`[^\p{L}\d.¡!# ]`, p.Name)
 	wrongRef, err1 := utils.ValidateInput(`[^\p{L}\d.:-_]`, p.Ref)

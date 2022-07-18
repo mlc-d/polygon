@@ -12,9 +12,7 @@ import (
 func CreateItem(c echo.Context) (err error) {
 	items := new([]models.Item)
 	if err = c.Bind(items); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 
 	unchangedItems := utils.Response{}
@@ -31,9 +29,7 @@ func CreateItem(c echo.Context) (err error) {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, utils.Response{
-		"success": "creado",
-	})
+	return c.String(http.StatusCreated, fmt.Sprintf("ok - creado"))
 }
 
 func GetItems(c echo.Context) (err error) {
@@ -44,9 +40,7 @@ func GetItems(c echo.Context) (err error) {
 func UpdateItem(c echo.Context) (err error) {
 	i := new(models.Item)
 	if err = c.Bind(i); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	// validate request
 	if err = models.UpdateItem(database.Ctx, i); err != nil {
@@ -63,16 +57,14 @@ func AllocateItem(c echo.Context) (err error) {
 	i := new([]models.Item)
 
 	if err = c.Bind(i); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 
 	unchangedItems := make([]string, 0)
 	for _, v := range *i {
 		if err = v.AllocateItem(database.Ctx); err != nil {
 			unchangedItems = append(unchangedItems, err.Error()+" cannot reallocate item")
-			//unchangedItems[err.Error()] = "cannot reallocate item"
+			// unchangedItems[err.Error()] = "cannot reallocate item"
 		}
 	}
 	if len(unchangedItems) > 0 {
@@ -80,9 +72,7 @@ func AllocateItem(c echo.Context) (err error) {
 			"error": unchangedItems,
 		})
 	}
-	return c.JSON(http.StatusOK, utils.Response{
-		"success": "reubicado",
-	})
+	return c.String(http.StatusOK, "ok")
 }
 
 func GetItem(c echo.Context) (err error) {
@@ -94,9 +84,7 @@ func GetItem(c echo.Context) (err error) {
 
 	item, err := models.GetItem(database.Ctx, uic)
 	if err != nil {
-		return c.JSON(http.StatusNotFound, utils.Response{
-			"error": "item no encontrado",
-		})
+		return c.String(http.StatusNotFound, fmt.Sprintf("error: %s", utils.Msg["dbError"]))
 	}
 	return c.JSON(http.StatusOK, item)
 }

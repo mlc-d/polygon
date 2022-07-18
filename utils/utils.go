@@ -22,12 +22,15 @@ var (
 	// jsonError
 	// invalidData
 	// dbError
+	// jwtError
+	// unauthorized
 	Msg = map[string]string{
-		"jsonError":    "El servidor no reconoce la información enviada",
-		"invalidData":  "La información enviada tiene inconsistencias",
-		"dbError":      "La petición a la base de datos no tuvo éxito",
-		"jwtError":     "Error al validar o generar un JWT",
-		"unauthorized": "Su usuario no está autorizado para realizar la operación",
+		"jsonError":          "El servidor no reconoce la información enviada",
+		"invalidCredentials": "Credenciales Inválidas",
+		"invalidData":        "La información enviada tiene inconsistencias",
+		"dbError":            "La petición a la base de datos no tuvo éxito",
+		"jwtError":           "Error al validar o generar un JWT",
+		"unauthorized":       "Su usuario no está autorizado para realizar la operación",
 	}
 )
 
@@ -42,14 +45,13 @@ func StringValue(i interface{}) string {
 	return fmt.Sprintf("%v", i)
 }
 
-func ByteValue(i interface{}) []byte {
-	return []byte(fmt.Sprintf("%v", i))
-}
+// ByteValue converts input to string, and then to byte array
+// func ByteValue(i interface{}) []byte {
+//	return []byte(fmt.Sprintf("%v", i))
+// }
 
-func ThrowErrorString(i interface{}) error {
-	return fmt.Errorf("error: %v", i)
-}
-
+// VerifyRole each request sends the user's role id. Controllers take it and
+// compare it to the list of roles authorized to perform the action.
 func VerifyRole(c echo.Context, downTo int) bool {
 	rol := c.Get("roleFromReq")
 	if val, err := strconv.Atoi(StringValue(rol)); err != nil || val >= downTo {

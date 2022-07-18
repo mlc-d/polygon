@@ -44,11 +44,11 @@ type PublicItem struct {
 }
 
 func (i *Item) CreateItem(ctx context.Context) (err error) {
-	//just in case
+	// just in case
 	i.StatusID = 1
 
 	db := database.DB
-	_, err = db.NewInsert().
+	sqlResult, err := db.NewInsert().
 		Model(i).
 		Exec(ctx)
 
@@ -57,19 +57,12 @@ func (i *Item) CreateItem(ctx context.Context) (err error) {
 		return err
 	}
 
-	var itemId uint
-
-	err = db.NewSelect().
-		Model(&Item{}).
-		Column("id").
-		Where("uic = ?", i.UIC).
-		Limit(1).
-		Scan(ctx, &itemId)
+	lastInsertedId, _ := sqlResult.LastInsertId()
 
 	if err == nil {
 		fmt.Println("crear historia")
 		err = CreateHistory(ctx, &History{
-			ItemID:     itemId,
+			ItemID:     uint(lastInsertedId),
 			SkuID:      i.SkuID,
 			LocationID: i.LocationID,
 			StatusID:   i.StatusID,

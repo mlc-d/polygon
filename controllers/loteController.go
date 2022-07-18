@@ -16,9 +16,7 @@ func CreateBatch(c echo.Context) (err error) {
 	}
 	l := new(models.Batch)
 	if err = c.Bind(l); err != nil {
-		return c.JSON(http.StatusBadRequest, utils.Response{
-			"error": utils.Msg["jsonError"],
-		})
+		return c.String(http.StatusBadRequest, fmt.Sprintf("error: %s", utils.Msg["jsonError"]))
 	}
 	f, err := utils.ValidateInput(`[^\p{L}\d]`, l.Batch)
 	if f || len(l.Batch) > 4 || err != nil {
